@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,14 +15,18 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Set;
 
+import ru.dsteb.popmovies.model.Movie;
 import ru.dsteb.popmovies.model.Page;
 import ru.dsteb.popmovies.model.SortEnum;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ImdbAdapter.ImdbAdapterOnclickHandler {
+
+    public static final String EXTRA_MOVIE = "EXTRA_MOVIE";
 
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private static final int GRID_COLUMNS_COUNT = 2;
+
 
     private RecyclerView mRecyclerView;
     private ImdbAdapter mAdapter;
@@ -44,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(layoutManager);
 
         // IMDB Adapter
-        mAdapter = new ImdbAdapter();
+        mAdapter = new ImdbAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
 
         mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
@@ -61,6 +66,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         new RetreiveMoviesTask().execute(lastPageLoaded);
+    }
+
+    @Override
+    public void onClick(Movie movie) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(EXTRA_MOVIE, movie);
+        startActivity(intent);
     }
 
     class RetreiveMoviesTask extends AsyncTask<Integer, Void, String> {
