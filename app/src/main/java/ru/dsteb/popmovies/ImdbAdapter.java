@@ -12,14 +12,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import ru.dsteb.popmovies.model.Movie;
+
 
 public class ImdbAdapter extends RecyclerView.Adapter<ImdbAdapter.ImbdbViewHolder> {
 
     private static final String TAG = ImdbAdapter.class.getCanonicalName();
 
-    private static final String IMG_URL = "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_CR0,0,704,1000_AL_.jpg";
+    private int itemCount;
+    private List<Movie> data = new ArrayList<>();
 
-    private final String[] mDataset = new String[100];
+    public ImdbAdapter() {}
 
     @NonNull
     @Override
@@ -32,17 +38,25 @@ public class ImdbAdapter extends RecyclerView.Adapter<ImdbAdapter.ImbdbViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull ImbdbViewHolder holder, int position) {
+        position = position % data.size();
+        Movie movie = data.get(position);
         Picasso
                 .get()
-                .load(Uri.parse(IMG_URL))
-                .placeholder(R.drawable.demo)
+                .load(Uri.parse(movie.getPosterUri()))
                 .into(holder.itemView);
     }
 
     @Override
     public int getItemCount() {
-        Log.d(TAG, "getItemCount: " + mDataset.length);
-        return mDataset.length;
+        return itemCount;
+    }
+
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
+    }
+
+    public void addData(List<Movie> data) {
+        this.data.addAll(data);
     }
 
     public static class ImbdbViewHolder extends RecyclerView.ViewHolder {
