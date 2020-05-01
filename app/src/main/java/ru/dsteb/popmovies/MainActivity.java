@@ -1,5 +1,6 @@
 package ru.dsteb.popmovies;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -8,6 +9,10 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +39,8 @@ public class MainActivity extends AppCompatActivity implements ImdbAdapter.ImdbA
 
     private int lastPageLoaded = 1;
     private int totalPages = -1;
+
+    private SortEnum sorting = SortEnum.POPULAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +76,39 @@ public class MainActivity extends AppCompatActivity implements ImdbAdapter.ImdbA
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.toggle_sort_action) {
+            int toastRes;
+            if (sorting == SortEnum.POPULAR) {
+                mAdapter.clearData();
+                mAdapter.notifyDataSetChanged();
+                lastPageLoaded = 1;
+                totalPages = -1;
+                sorting = SortEnum.RATING;
+                toastRes = R.string.rating_sort_toast;
+
+            } else {
+                mAdapter.clearData();
+                mAdapter.notifyDataSetChanged();
+                lastPageLoaded = 1;
+                totalPages = -1;
+                sorting = SortEnum.POPULAR;
+                toastRes = R.string.pop_sort_toast;
+            }
+            new RetreiveMoviesTask().execute(lastPageLoaded);
+            Toast.makeText(this, toastRes, Toast.LENGTH_LONG).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onClick(Movie movie) {
         Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra(EXTRA_MOVIE, movie);
@@ -83,9 +123,15 @@ public class MainActivity extends AppCompatActivity implements ImdbAdapter.ImdbA
         protected String doInBackground(Integer... args) {
             // Query IMDB
             lastPageLoaded = args[0];
-            String s = apiClient.getMostPopular(lastPageLoaded);
+            String jsonString;
+            if (sorting == SortEnum.POPULAR) {
+                jsonString = apiClient.getMostPopular(lastPageLoaded);
+            } else {
+                jsonString = apiClient.getTopRated(lastPageLoaded);
+            }
+
             Log.d(TAG, "loaded page: " + lastPageLoaded);
-            return s;
+            return jsonString;
         }
 
         @Override

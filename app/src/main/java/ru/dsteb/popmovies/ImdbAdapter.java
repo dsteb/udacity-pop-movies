@@ -57,6 +57,10 @@ public class ImdbAdapter extends RecyclerView.Adapter<ImdbAdapter.ImbdbViewHolde
         this.data.addAll(data);
     }
 
+    public void clearData() {
+        this.data.clear();
+    }
+
     public interface ImdbAdapterOnclickHandler {
         void onClick(Movie movie);
     }

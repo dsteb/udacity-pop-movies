@@ -15,7 +15,10 @@ public class ImdbApiClient {
     private static final String API_KEY_PARAM = "api_key";
     private static final String PAGE_PARAM = "page";
 
-    private static final String POP_URL = "https://api.themoviedb.org/3/movie/popular";
+    private static final String BASE_URL = "https://api.themoviedb.org/3/movie/";
+
+    private static final String POP_URL = BASE_URL + "popular";
+    private static final String TOP_RATED_URL = BASE_URL + "top_rated";
 
     private OkHttpClient client = new OkHttpClient();
 
@@ -30,7 +33,15 @@ public class ImdbApiClient {
     }
 
     public String getMostPopular(int page) {
-        HttpUrl url = HttpUrl.parse(POP_URL)
+        return getResponse(POP_URL, page);
+    }
+
+    public String getTopRated(int page) {
+        return getResponse(TOP_RATED_URL, page);
+    }
+
+    private String getResponse(String baseUrl, int page) {
+        HttpUrl url = HttpUrl.parse(baseUrl)
                 .newBuilder()
                 .addQueryParameter(API_KEY_PARAM, apiKey)
                 .addQueryParameter(PAGE_PARAM, String.valueOf(page))
@@ -42,7 +53,7 @@ public class ImdbApiClient {
         try {
             return client.newCall(req).execute().body().string();
         } catch (IOException e) {
-            Log.w(TAG, "getMostPopular: Failed to get movies from IMDB API", e);
+            Log.w(TAG, "getResponse: Failed to get movies from IMDB API", e);
             return null;
         }
     }
