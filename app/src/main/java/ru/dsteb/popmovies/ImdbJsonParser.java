@@ -38,12 +38,18 @@ public class ImdbJsonParser {
             for (int i = 0; i < results.length(); ++i) {
                 JSONObject movieJson = results.getJSONObject(i);
                 String title = movieJson.getString(TITLE);
-                LocalDate releaseDate = LocalDate.parse(movieJson.getString(RELEASE_DATE));
+
+                Optional<LocalDate> releaseDateOption = Optional.empty();
+                if (movieJson.has(RELEASE_DATE)) {
+                    LocalDate releaseDate = LocalDate.parse(movieJson.getString(RELEASE_DATE));
+                    releaseDateOption = Optional.of(releaseDate);
+                }
+
                 String posterPath = movieJson.getString(POSTER_PATH);
                 String posterUri = POSTER_URI + posterPath;
                 Double voteAverage = movieJson.getDouble(VOTE_AVERAGE);
                 String overview = movieJson.getString(OVERVIEW);
-                Movie movie = new Movie(title, releaseDate, posterUri, voteAverage, overview);
+                Movie movie = new Movie(title, releaseDateOption, posterUri, voteAverage, overview);
                 movies.add(movie);
             }
             return new Page(totalPages, movies);

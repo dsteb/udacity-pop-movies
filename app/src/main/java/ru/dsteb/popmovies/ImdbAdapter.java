@@ -1,7 +1,6 @@
 package ru.dsteb.popmovies;
 
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,6 @@ public class ImdbAdapter extends RecyclerView.Adapter<ImdbAdapter.ImbdbViewHolde
 
     private static final String TAG = ImdbAdapter.class.getCanonicalName();
 
-    private int itemCount;
     private List<Movie> data = new ArrayList<>();
 
     public ImdbAdapter() {}
@@ -48,11 +46,7 @@ public class ImdbAdapter extends RecyclerView.Adapter<ImdbAdapter.ImbdbViewHolde
 
     @Override
     public int getItemCount() {
-        return itemCount;
-    }
-
-    public void setItemCount(int itemCount) {
-        this.itemCount = itemCount;
+        return data.size();
     }
 
     public void addData(List<Movie> data) {

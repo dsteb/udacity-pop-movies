@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import ru.dsteb.popmovies.model.Page;
 import ru.dsteb.popmovies.model.SortEnum;
@@ -24,9 +25,10 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private ImdbAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
-
     private ImdbJsonParser jsonParser = new ImdbJsonParser();
+
+    private int lastPageLoaded = 1;
+    private int totalPages = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,32 +40,46 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
 
         // use a grid layout manager with 2 columns
-        mLayoutManager = new GridLayoutManager(this, GRID_COLUMNS_COUNT);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, GRID_COLUMNS_COUNT);
+        mRecyclerView.setLayoutManager(layoutManager);
 
         // IMDB Adapter
         mAdapter = new ImdbAdapter();
         mRecyclerView.setAdapter(mAdapter);
 
-        new RetreiveMoviesTask().execute(SortEnum.POPULAR);
+        mRecyclerView.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                if (totalPages > 0 && lastPageLoaded  >= totalPages) {
+                    Log.d(TAG, "onLoadMore: We loaded all the pages " + lastPageLoaded + " / " + totalPages);
+                } else {
+                    ++lastPageLoaded;
+                    Log.d(TAG, "onLoadMore: Loading the next page " + lastPageLoaded + " / " + totalPages);
+                    new RetreiveMoviesTask().execute(lastPageLoaded);
+                }
+            }
+        });
+
+        new RetreiveMoviesTask().execute(lastPageLoaded);
     }
 
-    class RetreiveMoviesTask extends AsyncTask<SortEnum, Void, String> {
+    class RetreiveMoviesTask extends AsyncTask<Integer, Void, String> {
 
         private ImdbApiClient apiClient = new ImdbApiClient();
 
         @Override
-        protected String doInBackground(SortEnum... sortEnums) {
+        protected String doInBackground(Integer... args) {
             // Query IMDB
-            String x = apiClient.getMostPopular(1);
-            Log.d(TAG, "onCreate: " + x);
-            return x;
+            lastPageLoaded = args[0];
+            String s = apiClient.getMostPopular(lastPageLoaded);
+            Log.d(TAG, "loaded page: " + lastPageLoaded);
+            return s;
         }
 
         @Override
         protected void onPostExecute(String s) {
             Page page = jsonParser.parsePage(s);
-            mAdapter.setItemCount(page.getTotalResults());
+            totalPages = page.getTotalResults();
             mAdapter.addData(page.getMovies());
             mAdapter.notifyDataSetChanged();
             super.onPostExecute(s);
